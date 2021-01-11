@@ -17,10 +17,10 @@
 add_action( 'init', 'wpmagiclinks_login_with_token', 5 );
 
 // Allows the function to be called, by the single event cron
-add_action( 'magiclinks_token_cleanup', 'wpmagiclinks_expire_token', 10, 2 );
+add_action( 'wpmagiclinks_token_cleanup', 'wpmagiclinks_expire_token', 10, 2 );
 
 // Add Shortcode for Magic Link
-add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
+add_shortcode('wpmagiclink_login', 'wpmagiclinks_generate_shortcode');
 
  /**
   * Login with Token
@@ -62,7 +62,7 @@ add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
 			 foreach ($hooks as $hook => $events) {
 
 				 // If it's not our cron job carry on looping
-				 if( 'magiclinks_token_cleanup' !== $hook ){
+				 if( 'wpmagiclinks_token_cleanup' !== $hook ){
 					 continue;
 				 }
 				 foreach( $events as $sig => $data){
@@ -89,8 +89,8 @@ add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
 	 //If our Base64 appears to have been manipulated
 	 if( ! $login_with_token ){
 		$errors->add(
-			'magiclink_login',
-				__( 'Base64 Error, object has been manipulated', 'magiclink')
+			'wpmagiclink_login',
+				__( 'Base64 Error, object has been manipulated', 'wpmagiclink')
 		);
 		wpmagiclinks_login_error( $errors );
 	 }
@@ -100,8 +100,8 @@ add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
 	 // If we don't have an array or it is empty or its missing our data
 	 if( ! is_array( $login_with_token ) || ! $login_with_token['id'] || ! $login_with_token['token']){
 		$errors->add(
-			'magiclink_login',
-				__( 'Token or user ID data is missing', 'magiclink')
+			'wpmagiclink_login',
+				__( 'Token or user ID data is missing', 'wpmagiclink')
 		);
 		wpmagiclinks_login_error( $errors );
 	 }
@@ -111,14 +111,14 @@ add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
 	 $user = get_user_by( 'id', $user_id );
 	 if( ! $user ){
 		$errors->add(
-			'magiclink_login',
-				__( 'Failed to get user by ID', 'magiclink')
+			'wpmagiclink_login',
+				__( 'Failed to get user by ID', 'wpmagiclink')
 		);
 		wpmagiclinks_login_error( $errors );
 	 }
 
 	 // Get the user tokens from the database for the user
-	 $tokens = get_user_meta( $user->ID, 'magiclink_tokens', true );
+	 $tokens = get_user_meta( $user->ID, 'wpmagiclink_tokens', true );
 
 	 // Get the token from our payload
 	 $payload_token = (string) $login_with_token['token'];
@@ -129,21 +129,21 @@ add_shortcode('magiclink_login', 'wpmagiclinks_generate_shortcode');
 
 			// remove the token, as its now been used
 			 unset($tokens[ $key ] );
-			 update_user_meta( $user->ID, 'magiclink_tokens', $tokens );
+			 update_user_meta( $user->ID, 'wpmagiclink_tokens', $tokens );
 			 wp_set_auth_cookie( $user->ID, true, is_ssl() );
 
 			// Do all the usual user login
 			do_action( 'wp_login', $user->user_login, $user );
 
 			// redirect the user
-			$redirect = apply_filters( 'magiclink_redirect_url', admin_url() );
+			$redirect = apply_filters( 'wpmagiclink_redirect_url', admin_url() );
 			wp_safe_redirect( $redirect );
 			exit;
 		 }
 	 }
 	$errors->add(
-		'magiclink_login',
-			__( 'Token could not be found, it either expired or is not valid', 'magiclink')
+		'wpmagiclink_login',
+			__( 'Token could not be found, it either expired or is not valid', 'wpmagiclink')
 	);
 	wpmagiclinks_login_error( $errors );
  }
@@ -176,7 +176,7 @@ function wpmagiclinks_login_error( object $error ){
   */
  function wpmagiclinks_generate_token( int $id ){
 	 //Get current list of tokens for this user
-	$tokens = get_user_meta( $id, 'magiclink_tokens', true );
+	$tokens = get_user_meta( $id, 'wpmagiclink_tokens', true );
 
 	//If the return is not an array, create a blank array
 	if( !is_array($tokens) || empty( $tokens ) ){
@@ -188,16 +188,16 @@ function wpmagiclinks_login_error( object $error ){
 
 	//Add our new generated token, to the existing list and update it.
 	$tokens[] = $token;
-	update_user_meta( $id, 'magiclink_tokens', $tokens );
+	update_user_meta( $id, 'wpmagiclink_tokens', $tokens );
 
 	//Set the time before we expire the token
 	$expire = time() + ( 10 * MINUTE_IN_SECONDS );
 
 	//Time can be changed by the filter
-	$expire = apply_filters( 'magiclinks_expiry_time', $expire );
+	$expire = apply_filters( 'wpmagiclinks_expiry_time', $expire );
 
 	//Schedule a cron job to clean up
-	wp_schedule_single_event( $expire, 'magiclinks_token_cleanup', array( $id, $token ));
+	wp_schedule_single_event( $expire, 'wpmagiclinks_token_cleanup', array( $id, $token ));
 
 	//Return the token so we can inform the user of it
 	return $token;
@@ -229,7 +229,7 @@ function wpmagiclinks_login_error( object $error ){
   */
  function wpmagiclinks_expire_token( int $id, string $expired_token ){
 	// Get the list of active tokens for the user if there are none, bail out.
-	$tokens = get_user_meta( $id, 'magiclink_tokens', true );
+	$tokens = get_user_meta( $id, 'wpmagiclink_tokens', true );
 	if( !is_array( $tokens) ){
 		return false;
 	}
@@ -241,7 +241,7 @@ function wpmagiclinks_login_error( object $error ){
 	}
 
 	// Return the new token now minus our expired token back to the database.
-	return update_user_meta( $id, 'magiclink_tokens', $tokens );
+	return update_user_meta( $id, 'wpmagiclink_tokens', $tokens );
  }
 
  /*
@@ -254,8 +254,8 @@ function wpmagiclinks_login_error( object $error ){
 	$user_email = $user->user_email;
 
 	//Set the email subject, can be changed by filter
-	$subject = _('Login Link', 'magiclink');
-	$subject = apply_filters( 'magiclink_email_subject', $subject);
+	$subject = _('Login Link', 'wpmagiclink');
+	$subject = apply_filters( 'wpmagiclink_email_subject', $subject);
 
 	//Generate the URL for the login link
 	$url = wpmagiclinks_generate_link( $user->ID, $token );
@@ -264,7 +264,7 @@ function wpmagiclinks_login_error( object $error ){
 	if( ! $url ){
 		$errors->add(
 			'send_magiclink_email',
-			__( 'The Link URL could not be generated', 'magiclink')
+			__( 'The Link URL could not be generated', 'wpmagiclink')
 		);
 		return $errors;
 	}
@@ -277,17 +277,17 @@ function wpmagiclinks_login_error( object $error ){
 	}
 
 	// Generate messsage, provide opportunity to filer
-	$message = sprintf( __( 'To login to %s', 'magiclink' ), $site_name ) . "\r\n\r\n";
-	$message .= __( 'please visit the following address:' , 'magiclink') . "\r\n\r\n";
+	$message = sprintf( __( 'To login to %s', 'wpmagiclink' ), $site_name ) . "\r\n\r\n";
+	$message .= __( 'please visit the following address:' , 'wpmagiclink') . "\r\n\r\n";
 	$message .= $url. "\r\n\r\n";
-	$message .= __( 'This link will expire after 10 minutes' , 'magiclink') . "\r\n\r\n";
-	$message = apply_filters( 'magiclink_email_message', $message );
+	$message .= __( 'This link will expire after 10 minutes' , 'wpmagiclink') . "\r\n\r\n";
+	$message = apply_filters( 'wpmagiclink_email_message', $message );
 
 	// Send email with login link
 	if( $message && ! wp_mail( $user_email, wp_specialchars_decode( $subject ), $message ) ){
 		$errors->add(
 			'send_magiclink_email',
-				__( 'The email could not be sent. Your site may not be correctly configured to send emails', 'magiclink')
+				__( 'The email could not be sent. Your site may not be correctly configured to send emails', 'wpmagiclink')
 		);
 		return $errors;
 	}
@@ -303,7 +303,7 @@ function wpmagiclinks_login_error( object $error ){
 	 ob_start();
 	?>
 	<form method="post" action="" id="wpmagiclinks_form">
-	<label><?php _e('Username', 'magiclinks' ) ?></label>
+	<label><?php _e('Username', 'wpmagiclinks' ) ?></label>
 	<?php wp_nonce_field('wpmagiclinks_form'); ?>
 	<input type="email" id="wpmagiclinks_form_email" name="wpmagiclinks_form_email" >
 	<input type="submit" id="wpmagiclinks_form_submit" name="wpmagiclinks_form_submit" value="send" >
@@ -311,7 +311,7 @@ function wpmagiclinks_login_error( object $error ){
 	<?php
 	$form = ob_get_contents();
 	ob_get_clean();
-	return apply_filters( 'magiclink_form', $form );
+	return apply_filters( 'wpmagiclink_form', $form );
  }
 
  /*
@@ -332,7 +332,7 @@ function wpmagiclinks_login_error( object $error ){
 	 if( is_user_logged_in() ){
 		$errors->add(
 			'wpmagiclink_shortcode',
-				__( 'You are already logged in', 'magiclink')
+				__( 'You are already logged in', 'wpmagiclink')
 		);
 		$show_form = false;
 	 }else{
@@ -341,7 +341,7 @@ function wpmagiclinks_login_error( object $error ){
 		 if( ! wp_verify_nonce( $_POST['_wpnonce'], "wpmagiclinks_form" ) ){
 			$errors->add(
 				'wpmagiclink_shortcode',
-					__( 'There was an error please try again', 'magiclink')
+					__( 'There was an error please try again', 'wpmagiclink')
 			);
 		 }else{
 
@@ -349,7 +349,7 @@ function wpmagiclinks_login_error( object $error ){
 			if( empty( $_POST['wpmagiclinks_form_email'] ) ){
 				$errors->add(
 					'wpmagiclink_shortcode',
-						__( 'Email is missing', 'magiclink')
+						__( 'Email is missing', 'wpmagiclink')
 				);
 			}else{
 
@@ -357,7 +357,7 @@ function wpmagiclinks_login_error( object $error ){
 				if( ! filter_var( $_POST['wpmagiclinks_form_email'], FILTER_VALIDATE_EMAIL ) ){
 					$errors->add(
 						'wpmagiclink_shortcode',
-							__( 'Invalid Email Format', 'magiclink')
+							__( 'Invalid Email Format', 'wpmagiclink')
 					);
 				}else{
 
@@ -372,7 +372,7 @@ function wpmagiclinks_login_error( object $error ){
 						if( ! $token ){
 							$errors->add(
 								'wpmagiclink_shortcode',
-									__( 'Error Please check Details and try again', 'magiclink')
+									__( 'Error Please check Details and try again', 'wpmagiclink')
 							);
 						}else{
 
@@ -403,7 +403,7 @@ function wpmagiclinks_login_error( object $error ){
 	 }else{
 
 		// Add Success Message
-		$message = __( 'If email was valid, email will be sent sent, check your inbox', 'magiclink' );
+		$message = __( 'If email was valid, email will be sent sent, check your inbox', 'wpmagiclink' );
 
 		// Add html class to make styling easier
 		$class = 'wpmagiclinks_success';
