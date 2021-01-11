@@ -331,7 +331,7 @@ function wpmagiclinks_login_error( object $error ){
 	 //Check if user is logged in, add message do not show form
 	 if( is_user_logged_in() ){
 		$errors->add(
-			'wpmagiclink_widget',
+			'wpmagiclink_shortcode',
 				__( 'You are already logged in', 'magiclink')
 		);
 		$show_form = false;
@@ -340,7 +340,7 @@ function wpmagiclinks_login_error( object $error ){
 		// Verify the Nonce and reject if not valid, allow reattempts
 		 if( ! wp_verify_nonce( $_POST['_wpnonce'], "wpmagiclinks_form" ) ){
 			$errors->add(
-				'wpmagiclink_widget',
+				'wpmagiclink_shortcode',
 					__( 'There was an error please try again', 'magiclink')
 			);
 		 }else{
@@ -348,7 +348,7 @@ function wpmagiclinks_login_error( object $error ){
 			// Verify email has content
 			if( empty( $_POST['wpmagiclinks_form_email'] ) ){
 				$errors->add(
-					'wpmagiclink_widget',
+					'wpmagiclink_shortcode',
 						__( 'Email is missing', 'magiclink')
 				);
 			}else{
@@ -356,7 +356,7 @@ function wpmagiclinks_login_error( object $error ){
 				//Check the email is a valid email format
 				if( ! filter_var( $_POST['wpmagiclinks_form_email'], FILTER_VALIDATE_EMAIL ) ){
 					$errors->add(
-						'wpmagiclink_widget',
+						'wpmagiclink_shortcode',
 							__( 'Invalid Email Format', 'magiclink')
 					);
 				}else{
@@ -371,7 +371,7 @@ function wpmagiclinks_login_error( object $error ){
 						$token = wpmagiclinks_generate_token( $user->ID );
 						if( ! $token ){
 							$errors->add(
-								'wpmagiclink_widget',
+								'wpmagiclink_shortcode',
 									__( 'Error Please check Details and try again', 'magiclink')
 							);
 						}else{
@@ -382,7 +382,7 @@ function wpmagiclinks_login_error( object $error ){
 							//If the email comes back with errors, pass them to this instance of the WP_Error object
 							if( is_wp_error( $email ) ){
 								$errors->add(
-									'wpmagiclink_widget',
+									'wpmagiclink_shortcode',
 									$email->get_error_message()
 								);
 						}
