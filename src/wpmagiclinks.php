@@ -398,19 +398,28 @@ function wpmagiclinks_login_error( object $error ){
 		// Add message to form
 		$message = $errors->get_error_message();
 
+		//Add html class to make styling easier
 		$class = 'wpmagiclinks_error';
 	 }else{
+
+		// Add Success Message
 		$message = __( 'If email was valid, email will be sent sent, check your inbox', 'magiclink' );
-		$message = apply_filters('wpmagiclink_form_sent_message', $message );
+
+		// Add html class to make styling easier
 		$class = 'wpmagiclinks_success';
+
+		//Don't show the Form as we have sent the email
 		$show_form = false;
 	 }
 
-	 $class = apply_filters( 'wpmagiclink_form_sent_message_class', $message );
+	 // Filters to change the message being sent, and to add/modify classes to the message form
+	 $message = apply_filters('wpmagiclink_form_sent_message', $message );
+	 $class = apply_filters( 'wpmagiclink_form_sent_message_class', $message, $class );
 	 //Ok let's create the form and bits
 	 ?>
 	 <div id="wpmagiclinks">
 	 <?php
+	 // Show message if we have already processed the form
 	 if( $message ){
 	?>
 		<div id="wpmagiclinks_message" class="<?php echo $class ?>">
@@ -418,6 +427,7 @@ function wpmagiclinks_login_error( object $error ){
 		</div>
 	<?php
 	 }
+	 // Show form if it has yet to be processed or error needs correcting
 	 if( $show_form ){
 		echo wpmagiclinks_generate_form();
 	 }
