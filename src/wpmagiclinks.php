@@ -157,7 +157,7 @@ function wpmagiclinks_login_error( object $error ) {
 		if ( is_wp_error( $error ) ) {
 
 			//Display Error details
-			wp_die( $error->get_error_message(), $error->get_error_code() );
+			wp_die( esc_attr( $error->get_error_message() ), esc_attr( $error->get_error_code() ) );
 		}
 	}
 
@@ -332,7 +332,7 @@ function wpmagiclinks_generate_shortcode() {
 		);
 		$show_form = false;
 	}
-	if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+	if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 
 		// Verify the Nonce and reject if not valid, allow reattempts
 		if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'wpmagiclinks_form' ) ) {
@@ -398,7 +398,7 @@ function wpmagiclinks_generate_shortcode() {
 		//Add html class to make styling easier
 		$class = 'wpmagiclinks_error';
 	} else {
-		if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+		if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			// Add Success Message
 			$message = __( 'If email was valid, email will be sent sent, check your inbox', 'wpmagiclink' );
 
@@ -417,11 +417,11 @@ function wpmagiclinks_generate_shortcode() {
 	?>
 	 <div id="wpmagiclinks">
 	<?php
-	// Show message if we have already processed the form
+	// Show messagse if we have already processed the form
 	if ( $message ) {
 		?>
-		<div id="wpmagiclinks_message" class="<?php echo $class; ?>">
-		<?php echo esc_attr($message); ?>
+		<div id="wpmagiclinks_message" class="<?php echo esc_attr( $class ); ?>">
+		<?php echo esc_attr( $message ); ?>
 		</div>
 		<?php
 	}
