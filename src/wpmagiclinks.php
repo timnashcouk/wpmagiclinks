@@ -217,7 +217,7 @@ function wpmagiclinks_login_error( object $error ){
 
 	// Get the login location and append our payload token
 	$login_url = site_url( 'wp-login.php', 'login' );
-	$login_url = add_query_arg( 'login_with_token', urlencode($payload), $login_url );
+	$login_url = add_query_arg( 'login_with_token', urlencode(base64_encode($payload)), $login_url );
 
 	//apply any additional filters (for example if someone has moved the login location)
 	return apply_filters( 'login_url', $login_url, '', false );
@@ -254,7 +254,7 @@ function wpmagiclinks_login_error( object $error ){
 	$user_email = $user->user_email;
 
 	//Set the email subject, can be changed by filter
-	$subject = _('Login Link', 'wpmagiclink');
+	$subject = __('Login Link', 'wpmagiclink');
 	$subject = apply_filters( 'wpmagiclink_email_subject', $subject);
 
 	//Generate the URL for the login link
@@ -303,9 +303,9 @@ function wpmagiclinks_login_error( object $error ){
 	 ob_start();
 	?>
 	<form method="post" action="" id="wpmagiclinks_form">
-	<label><?php _e('Username', 'wpmagiclinks' ) ?></label>
+	<label><?php _e('Email', 'wpmagiclinks' ) ?></label>
 	<?php wp_nonce_field('wpmagiclinks_form'); ?>
-	<input type="email" id="wpmagiclinks_form_email" name="wpmagiclinks_form_email" >
+	<input type="email" id="wpmagiclinks_form_email" name="wpmagiclinks_form_email" placeholder="jane@example.com">
 	<input type="submit" id="wpmagiclinks_form_submit" name="wpmagiclinks_form_submit" value="send" >
 	</form>
 	<?php
@@ -335,7 +335,8 @@ function wpmagiclinks_login_error( object $error ){
 				__( 'You are already logged in', 'wpmagiclink')
 		);
 		$show_form = false;
-	 }else{
+	 }
+	 if( $_SERVER['REQUEST_METHOD'] === 'POST' ){
 
 		// Verify the Nonce and reject if not valid, allow reattempts
 		 if( ! wp_verify_nonce( $_POST['_wpnonce'], "wpmagiclinks_form" ) ){
@@ -393,7 +394,7 @@ function wpmagiclinks_login_error( object $error ){
 	 }
 	}
 	 //Set the message, either it will be an error message, or generic success message
-	 if( is_wp_error( $errors ) ){
+	 if( is_wp_error( $errors ) && $errors->has_errors() ){
 
 		// Add message to form
 		$message = $errors->get_error_message();
@@ -401,15 +402,16 @@ function wpmagiclinks_login_error( object $error ){
 		//Add html class to make styling easier
 		$class = 'wpmagiclinks_error';
 	 }else{
+		if( $_SERVER['REQUEST_METHOD'] === 'POST' ){
+			// Add Success Message
+			$message = __( 'If email was valid, email will be sent sent, check your inbox', 'wpmagiclink' );
 
-		// Add Success Message
-		$message = __( 'If email was valid, email will be sent sent, check your inbox', 'wpmagiclink' );
+			// Add html class to make styling easier
+			$class = 'wpmagiclinks_success';
 
-		// Add html class to make styling easier
-		$class = 'wpmagiclinks_success';
-
-		//Don't show the Form as we have sent the email
-		$show_form = false;
+			//Don't show the Form as we have sent the email
+			$show_form = false;
+		}
 	 }
 
 	 // Filters to change the message being sent, and to add/modify classes to the message form
