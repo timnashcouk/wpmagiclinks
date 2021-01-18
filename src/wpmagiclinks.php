@@ -92,7 +92,7 @@ function wpmagiclinks_login_with_token() {
 		wpmagiclinks_login_error( $errors );
 	}
 
-	$login_with_token = wp_json_decode( $login_with_token, true );
+	$login_with_token = json_decode( $login_with_token, true );
 
 	// If we don't have an array or it is empty or its missing our data
 	if ( ! is_array( $login_with_token ) || ! $login_with_token['id'] || ! $login_with_token['token'] ) {
